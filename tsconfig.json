@@ -12,11 +12,9 @@
   "files":[
     "src/diff.ts",
     "src/fileDialogUtils.ts",
-    "src/ScrollViewUI.ts",
     "src/treeModel.ts",
     "src/UI.ts",
-    "src/UIBuilder.ts",
-    "src/UIFactory.ts"
+    "src/UIBuilder.ts"
   ],
   "exclude": [
     "node_modules",

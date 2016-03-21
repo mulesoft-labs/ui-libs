@@ -1,4 +1,5 @@
-/// <reference path="../typings/main.d.ts" />
+declare function require(name:string):any
+declare var process:any;
 var remote = require("remote");
 var dialog = remote.require("dialog");
 

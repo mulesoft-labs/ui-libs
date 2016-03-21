@@ -1,8 +1,6 @@
 /// <reference path="../typings/main.d.ts" />
 
 import _ =require("underscore")
-import factory = require("./UIFactory");
-import SC = require("./ScrollViewUI")
 import diff = require("./diff");
 import tm = require("./treeModel");
     
@@ -352,7 +350,7 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
     }
 
     private applyTooltip(tooltip: BasicComponent<any>) {
-        var tooltipText = factory.hc(tooltip).renderUI().innerHTML;
+        var tooltipText = hc(tooltip).renderUI().innerHTML;
         var outer = this;
         this.tooltipComponentListener = {
 
@@ -1901,7 +1899,7 @@ export class StructuredViewer<M, T> extends Viewer<M> implements SelectionViewer
         _cp.init(this);
         
         if (this.renderer instanceof BasicListanable) {
-            (<BasicListanable<PropertyChangeEvent, PropertyChangeListener>><any>factory.renderer).addListener(this.eh);
+            (<BasicListanable<PropertyChangeEvent, PropertyChangeListener>><any>renderer).addListener(this.eh);
         }
     }
     
@@ -1914,7 +1912,7 @@ export class StructuredViewer<M, T> extends Viewer<M> implements SelectionViewer
     
     dispose() {
         if (this.renderer instanceof BasicListanable) {
-            (<BasicListanable<PropertyChangeEvent, PropertyChangeListener>><any>factory.renderer).removeListener(this.eh);
+            (<BasicListanable<PropertyChangeEvent, PropertyChangeListener>><any>renderer).removeListener(this.eh);
         }
         super.dispose();
         this._cp.dispose();
@@ -2117,18 +2115,18 @@ export class ListView<M, T> extends StructuredViewer<M, T>{
     tryScrollToSelected() {
         try {
             var p : UIComponent = this.parent();
-            while (p && !(p instanceof SC.Scrollable)) p = p.parent();
-            
-            var ps : SC.Scrollable = <any> p;
-            
-            var sz = ps.size();
-            
-            var offset = this._selected.ui().offsetTop;
-            
-            if (offset < sz.top)
-                ps.scroll(offset - 40, 0);
-            else if (offset + this._selected.ui().clientHeight > sz.bottom)
-                ps.scroll(offset - (sz.bottom - sz.top) + 80, 0);
+            //while (p && !(p instanceof SC.Scrollable)) p = p.parent();
+            //
+            //var ps : SC.Scrollable = <any> p;
+            //
+            //var sz = ps.size();
+            //
+            //var offset = this._selected.ui().offsetTop;
+            //
+            //if (offset < sz.top)
+            //    ps.scroll(offset - 40, 0);
+            //else if (offset + this._selected.ui().clientHeight > sz.bottom)
+            //    ps.scroll(offset - (sz.bottom - sz.top) + 80, 0);
                 
         } catch (e) {
             
@@ -2290,13 +2288,13 @@ export interface TreePanel<A,T> extends Panel {
 }
 
 export function listSection<T>(header:string,icon:Icon,input:T[],renderer:ICellRenderer<T>,addFilter:boolean=false,lf:LabelFunction<T>=null):Panel{
-    var resp = factory.section(header, icon);
+    var resp = section(header, icon);
     var tw = new ListView<T[],T>(new ArrayContentProvider<T>(), renderer);
     if (lf){
         tw.setBasicLabelFunction(lf)
     }
     if (addFilter) {
-        resp.addChild(factory.filterField(tw))
+        resp.addChild(filterField(tw))
     }
     tw.setInput(input)
     resp.addChild(tw);
@@ -2529,7 +2527,7 @@ export function applyStyling(classes : TextClasses, element : BasicComponent<any
 };
 
 function getGrammar(id:string){
-    return _.find(atom.grammars.getGrammars(),x=>x.scopeName==id);
+    return _.find(atom.grammars.getGrammars(),x=>(<any>x).scopeName==id);
 }
 
 
@@ -2719,7 +2717,7 @@ export class DialogField<T extends BasicComponent<any>> extends AbstractWrapEdit
         if (this._textLabel) {
             if (this._required) {
                 if (!this._rlab){
-                this._rlab =<any>factory.label("*", null, TextClasses.HIGHLIGHT).pad(3,0);
+                this._rlab =<any>label("*", null, TextClasses.HIGHLIGHT).pad(3,0);
                 this._textLabelPanel.addChild(this._rlab);
                 }
                 else{
@@ -2764,8 +2762,8 @@ export class DialogField<T extends BasicComponent<any>> extends AbstractWrapEdit
     }
 
     protected createLabel(caption) {
-        this._textLabel=factory.label(this.caption());
-        this._textLabelPanel = factory.hc(this._textLabel);
+        this._textLabel=label(this.caption());
+        this._textLabelPanel = hc(this._textLabel);
         this._textLabelPanel.addChild(this._textLabel);
         this.setRequired(this._required);
         this._textLabelPanel.setStyle("float", "left");
@@ -2924,7 +2922,7 @@ export class StuffWithButtons extends Panel{
                 this.plus.setDisplay(true)
             }
             else {
-                this.plus = factory.a("+", x=> {
+                this.plus = a("+", x=> {
                     this.host.createElementUI();
                     this.host.updateSigns();
 
@@ -2946,7 +2944,7 @@ export class StuffWithButtons extends Panel{
                 this.minus.setDisplay(true)
             }
             else {
-                var minus = factory.a("-", x=> {
+                var minus = a("-", x=> {
                     this.host._actualField.removeChild(this)
                     this.host.containers = this.host.containers.filter(x=>x != this);
                     this.host.updateSigns();
@@ -3068,7 +3066,7 @@ export class DialogFieldWithModes extends  DialogField<WrapEditor>{
         else{
             this._actualField.setActualField(_config.secondOption,_config.firstToSecondConverter);
         }
-        this.ref=factory.a(this.isFirst?_config.firstOptionLabel:_config.secondOptionLabel,x=>{
+        this.ref=a(this.isFirst?_config.firstOptionLabel:_config.secondOptionLabel,x=>{
             this.switchMode();
         });
         this.ref.setDisabled(!canGo)
@@ -3426,7 +3424,7 @@ export class Section extends Panel {
         }
         else {
             if (!this._chevron) {
-                var l = factory.label("", Icon.CHEVRON_RIGHT).setStyle("float", "left");
+                var l = label("", Icon.CHEVRON_RIGHT).setStyle("float", "left");
                 this._chevron = l;
                 this._header.addChild(l);
                 this._collapseListener = x=> {
@@ -3487,7 +3485,7 @@ export class TabFolder extends Panel{
     }
 
     private _selectedIndex: number = -1;
-    private _buttons: BasicComponent<HTMLElement> = factory.vc();
+    private _buttons: BasicComponent<HTMLElement> = vc();
         
     private _tabs: { 
         header: string;
@@ -3585,3 +3583,189 @@ export class TabFolder extends Panel{
 export interface Convertor<T,R>{
     (v:T):R
 }
+
+export function label(text: string, ic: Icon = null, tc: TextClasses = null, th: HighLightClasses = null): TextElement<any> {
+    var v = new TextElement("label", text, ic);
+    applyStyling(tc, v, th);
+    return v;
+}
+
+export function html(text:string):InlineHTMLElement{
+    var v= new InlineHTMLElement("span",text);
+    return v;
+}
+
+export function a(text:string,e:EventHandler, ic:Icon=null,tc:TextClasses=null,th:HighLightClasses=null):TextElement<any>{
+    var v= new TextElement("a",text,ic);
+    v.addOnClickListener(e);
+    applyStyling(tc, v, th);
+    return v;
+}
+
+export function checkBox(caption: string, h: EventHandler = x=> { }) {
+    return new CheckBox(caption, null, h)
+}
+
+export function select(caption: string) {
+    return new Select(caption, x=>x)
+}
+
+export function button(txt: string, _size: ButtonSizes = ButtonSizes.NORMAL,
+                       _highlight: ButtonHighlights = ButtonHighlights.NO_HIGHLIGHT,
+                       _icon: Icon = null, onClick: EventHandler = null) {
+    return new Button(txt, _size, _highlight, _icon, onClick);
+}
+
+export function buttonSimple(txt: string, onClick: EventHandler = null,
+                             _icon: Icon = null) {
+    return new Button(txt, ButtonSizes.NORMAL,
+        ButtonHighlights.NO_HIGHLIGHT, _icon, onClick);
+}
+
+export function toggle(txt: string, _size: ButtonSizes = ButtonSizes.NORMAL,
+                       _highlight: ButtonHighlights = ButtonHighlights.NO_HIGHLIGHT,
+                       _icon: Icon = null, onClick: EventHandler = null) {
+    return new ToggleButton(txt, _size, _highlight, _icon, onClick);
+}
+
+export function renderer<T>(v: WidgetCreator<T>): ICellRenderer<T> {
+    return new SimpleRenderer(v);
+}
+
+export function treeViewer<T>(childFunc: ObjectToChildren<T>, renderer: ICellRenderer<T>, labelProvider?: LabelFunction<T>): TreeViewer<T, T> {
+    return new TreeViewer<T, T>(new DefaultTreeContentProvider(childFunc), renderer, labelProvider);
+}
+
+export function treeViewerSection<T>(header: string, icon: Icon, input: T, childFunc: ObjectToChildren<T>, renderer: ICellRenderer<T>): TreePanel<T, T> {
+    var resp: TreePanel<T, T> = <any>section(header, icon);
+
+    var tw = treeViewer(childFunc, renderer);
+
+    tw.renderUI();
+
+    tw.setInput(input);
+    resp.addChild(filterField(tw));
+    resp.viewer = tw;
+    resp.addChild(tw);
+    return resp;
+}
+
+export function filterField(viewer: StructuredViewer<any, any>) {
+    var flt = new BasicFilter();
+    var t = new TextField("Filter:", "", x=> {
+        flt.setPattern((<AtomEditorElement>x).getValue());
+    }, LayoutType.INLINE_BLOCK)
+    t.setStyle("margin-bottom", "5px")
+    viewer.addViewerFilter(flt);
+    return t;
+}
+
+export function toggleFilter<T>(viewer: StructuredViewer<any, T>, icon: Icon, pred: Predicate<T>, on: boolean = false, desc: string = "") {
+    var flt = new ToggleFilter(pred);
+    var t = toggle("", ButtonSizes.EXTRA_SMALL, ButtonHighlights.NO_HIGHLIGHT, icon, x=> {
+        flt.setOn(!flt.isOn())
+    })
+    t.setSelected(on)
+    flt.setOn(on)
+    viewer.addViewerFilter(flt);
+    return t;
+}
+
+
+export function section(text: string, ic: Icon = null, collapsable: boolean = true, colapsed: boolean = false, ...children: UIComponent[]): Section {
+    var textElement = new TextElement("h2", text, ic);
+    var newSection = new Section(textElement, collapsable);
+
+    children.filter(x=>x != null).forEach(x=> newSection.addChild(x));
+
+    newSection.setExpanded(!colapsed);
+    return newSection;
+}
+
+
+export function masterDetailsPanel<T, R>(selectionProvider: SelectionViewer<T>, viewer: Viewer<R>, convert: Convertor<T, R> = null, horizontal: boolean = false): Panel {
+    var panel = horizontal ? hc(selectionProvider, viewer) : vc(selectionProvider, viewer);
+    masterDetails(selectionProvider, viewer, convert)
+    return panel;
+}
+
+export function hcTight(...children: UIComponent[]) {
+    var panel = new Panel(LayoutType.INLINE_BLOCK_TIGHT);
+    children.forEach(x=> panel.addChild(x));
+    return panel;
+}
+export function hc(...children: UIComponent[]) {
+    var panel = new Panel(LayoutType.INLINE_BLOCK);
+    children.forEach(x=> panel.addChild(x));
+    return panel;
+}
+export function vc(...children: UIComponent[]) {
+    var panel = new Panel(LayoutType.BLOCK);
+    children.forEach(x=> panel.addChild(x));
+    return panel;
+}
+
+export function li(...children: UIComponent[]) {
+    var panel = new Panel(LayoutType.BLOCK);
+    panel.setTagName("li");
+    children.forEach(x=> panel.addChild(x));
+    return panel;
+}
+
+export function masterDetails<R, T>(selectionProvider: SelectionProvider<T>, viewer: Viewer<R>, convert: Convertor<T, R> = null) {
+    selectionProvider.addSelectionListener({
+        selectionChanged(e: SelectionChangedEvent<T>) {
+            if (!e.selection.isEmpty()) {
+                var val = e.selection.elements[0];
+                if (convert) {
+                    var vl = convert(val);
+                    viewer.setInput(vl);
+                }
+                else {
+                    viewer.setInput(<any>val);
+                }
+            }
+            else {
+                viewer.setInput(null);
+            }
+        }
+    });
+}
+declare var atom:{workspace:any, grammars: any, tooltips:any}
+export function prompt (name:string, callBack : (newValue:string)=>void, initialValue?:string): void {
+
+    var pane = null;
+    var section=section(name,Icon.BOOK,false,false)
+    var textValue = initialValue
+
+    section.addChild(new AtomEditorElement(initialValue, x=>textValue = x.getBinding().get()))
+
+    var buttonBar=hc().setPercentWidth(100).setStyle("display","flex");
+    buttonBar.addChild(label("",null,null,null).setStyle("flex","1"))
+
+    buttonBar.addChild(button(
+        "Cancel",
+        ButtonSizes.NORMAL,
+        ButtonHighlights.NO_HIGHLIGHT,
+        Icon.NONE,
+        x=>{pane.destroy()}
+    ).margin(10,10));
+
+    var okButton = button(
+        "Submit",
+        ButtonSizes.NORMAL,
+        ButtonHighlights.SUCCESS,
+        Icon.NONE,
+        x=>{
+            pane.destroy()
+            callBack(textValue)
+        }
+    )
+    buttonBar.addChild(okButton);
+    section.addChild(buttonBar);
+
+    pane =atom.workspace.addModalPanel( { item: section.renderUI() });
+}
+export import fdUtils=require("./fileDialogUtils")
+
+

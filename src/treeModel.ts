@@ -1,4 +1,3 @@
-/// <reference path="../typings/main.d.ts" />
 declare class Map<A,B>{
 
 	get(a:A):B
