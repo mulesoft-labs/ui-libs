@@ -1,6 +1,6 @@
-/// <reference path="../typings/main.d.ts" />
 
-import _ =require("underscore")
+declare function require(s:string):any
+var _ =require("underscore")
 import diff = require("./diff");
 import tm = require("./treeModel");
     
