@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "declaration": true,
+    "noImplicitAny": false,
+    "moduleResolution": "node",
+    "removeComments": true,
+    "sourceMap": true,
+    "outDir":"dist/"
+  },
+  "files":[
+    "src/diff.ts",
+    "src/fileDialogUtils.ts",
+    "src/ScrollViewUI.ts",
+    "src/treeModel.ts",
+    "src/UI.ts",
+    "src/UIBuilder.ts",
+    "src/UIFactory.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "typings"
+  ]
+}
