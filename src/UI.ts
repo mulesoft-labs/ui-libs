@@ -3735,10 +3735,10 @@ declare var atom:{workspace:any, grammars: any, tooltips:any}
 export function prompt (name:string, callBack : (newValue:string)=>void, initialValue?:string): void {
 
     var pane = null;
-    var section=section(name,Icon.BOOK,false,false)
+    var sectionC=section(name,Icon.BOOK,false,false)
     var textValue = initialValue
 
-    section.addChild(new AtomEditorElement(initialValue, x=>textValue = x.getBinding().get()))
+    sectionC.addChild(new AtomEditorElement(initialValue, x=>textValue = x.getBinding().get()))
 
     var buttonBar=hc().setPercentWidth(100).setStyle("display","flex");
     buttonBar.addChild(label("",null,null,null).setStyle("flex","1"))
@@ -3762,9 +3762,9 @@ export function prompt (name:string, callBack : (newValue:string)=>void, initial
         }
     )
     buttonBar.addChild(okButton);
-    section.addChild(buttonBar);
+    sectionC.addChild(buttonBar);
 
-    pane =atom.workspace.addModalPanel( { item: section.renderUI() });
+    pane =atom.workspace.addModalPanel( { item: sectionC.renderUI() });
 }
 export import fdUtils=require("./fileDialogUtils")
 
