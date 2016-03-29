@@ -3726,7 +3726,7 @@ export function masterDetails<R, T>(selectionProvider: SelectionProvider<T>, vie
                 }
             }
             else {
-                viewer.setInput(null);
+                 viewer.setInput(null);
             }
         }
     });
