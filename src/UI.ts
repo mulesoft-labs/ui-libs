@@ -3732,6 +3732,12 @@ export function masterDetails<R, T>(selectionProvider: SelectionProvider<T>, vie
     });
 }
 declare var atom:{workspace:any, grammars: any, tooltips:any}
+/**
+ * function to show dialog prompt
+ * @param name
+ * @param callBack
+ * @param initialValue
+ */
 export function prompt (name:string, callBack : (newValue:string)=>void, initialValue?:string): void {
 
     var pane = null;
