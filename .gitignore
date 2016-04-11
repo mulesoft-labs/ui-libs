@@ -9,3 +9,6 @@
 *.iml
 
 /dist/
+
+.project
+.settings
