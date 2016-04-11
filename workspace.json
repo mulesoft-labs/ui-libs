@@ -1,0 +1,14 @@
+{
+  "api-workbench" : {
+    "build" : "gulp build",
+    "test" : "gulp test",
+    "gitUrl" : "https://github.com/mulesoft-labs/api-workbench",
+    "gitBranch" : "parserExtract",
+    "installTypings" : true
+  },
+  "atom-ui-lib" : {
+    "build" : "npm run build",
+    "gitUrl" : "https://github.com/mulesoft-labs/ui-libs.git",
+    "installTypings" : true
+  }
+}
