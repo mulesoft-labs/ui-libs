@@ -403,8 +403,21 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
      */
     dispose() {
         this.disposable.dispose();
-        this._children.forEach(x=> x.dispose())
+        this._children.forEach(x=>{x.dispose()})
+
+        if (this._ui){
+            this._ui.onfocus =null;
+            this._ui.onclick=null;
+            (<Node>this._ui).removeEventListener("DOMNodeRemovedFromDocument", this.destroyListener);
+            this._ui=null;
+
+        }
+        this._parent=null;
+        this.wasDisposed=true;
+
+
     }
+    wasDisposed=false;
 
     public getPercentWidth(): number {
         return this._percentWidth;
@@ -522,6 +535,21 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
     }
     
     private _oldIcon: string;
+
+    focusPropagator= x=> {
+        this.focusListeners.forEach(y=> y(this))
+    }
+
+    destroyListener=x=> {
+        //x.stopPropagation();
+
+        if (x.srcElement == this._ui&&this.dispose) {
+            this.dispose()
+        }
+        x.srcElement.onfocus =null;
+        x.srcElement.onclick=null;
+        (<Node>x.srcElement).removeEventListener("DOMNodeRemovedFromDocument", this.destroyListener);
+    };
     
     protected customize(element: T) {
         if (this._icon) {
@@ -541,16 +569,8 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
                 element.classList.remove(this._oldIcon)
             }
         }
-        element.onfocus = x=> {
-            this.focusListeners.forEach(y=> y(this))
-        }
-
-        (<Node>element).addEventListener("DOMNodeRemovedFromDocument", x=> {
-            x.stopPropagation();
-            if (x.srcElement == this._ui) {
-                this.dispose()
-            }
-        });
+        element.onfocus =this.focusPropagator;
+        (<Node>element).addEventListener("DOMNodeRemovedFromDocument", this.destroyListener);
         //TODO  HANDLE LYFECICLE
 
         if (this.tooltipComponent) {
@@ -693,6 +713,7 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
     }
     
     removeChild(child: UIComponent) {
+        //child.dispose();
         this._children = this._children.filter(x=> x != child);
         if (this._ui) {
             try {
@@ -2530,6 +2551,8 @@ function getGrammar(id:string){
     return _.find(atom.grammars.getGrammars(),x=>(<any>x).scopeName==id);
 }
 
+var count=0;
+
 
 export class AtomEditorElement extends TextElement<HTMLInputElement>{
 
@@ -2537,12 +2560,15 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
         this._onchange = onChange;
     }
     private _txt: string;
-    
+
+    num:number;
     constructor(text: string|IBinding, private _onchange: EventHandler) {
         super("atom-text-editor", text);
         this._txt = this.getBinding().get();
+        this.num=count++;
+
     }
-    
+
     private grammar: string;
 
     setGrammar(id: string) {
@@ -2552,12 +2578,22 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
         }
     }
 
+    renderUI(): HTMLInputElement {
+        var u:any=super.renderUI();
+        var oldUnmount=u.unmountComponent;
+        var outer:any=this;
+
+        return u;
+    }
+
     private innerSetGrammar() {
         if (this.grammar) {
             var editor = ((<any>this.ui()).getModel())
             var ag=getGrammar(this.grammar);
-
+            var evH:any=ag;
+            var oldListeners:any[]=[].concat(evH.emitter.handlersByEventName["did-update"]);
             editor.setGrammar(ag)
+            evH.emitter.handlersByEventName["did-update"]=oldListeners;
         }
     }
     protected mini:boolean=true;
@@ -2587,6 +2623,16 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     setSoftWrapped(wrap: boolean) : boolean {
         return (<any>this.ui()).getModel().setSoftWrapped(wrap);
     }
+    dispose(){
+        if (this._ui) {
+            var editor = ((<any>this._ui).getModel())
+            editor.emitter.handlersByEventName['did-change'] = [];
+            editor.emitter.dispose();
+            (<any>this._ui).model=null;
+        }
+        super.dispose();
+        this._ui=null;
+    }
     
 
     protected customize(element:HTMLInputElement) {
@@ -2595,7 +2641,18 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
             if (this.mini) {
                 element.setAttribute("mini", '');
             }
+            var vv:any=(<any>atom).views;
+            var cfg=(<any>atom).config
+            var l=(<any>atom).styles.emitter.handlersByEventName;
+            var sadd:any[]=[].concat(l['did-add-style-element']);
+            var sremove:any[]=[].concat(l['did-remove-style-element']);
+            var schange:any[]=[].concat(l['did-update-style-element']);
+            //var cfgCh:any[]=[].concat(cfg.emitter.handlersByEventName['did-change']);
+
+            var buf:any[]=[].concat(vv.documentPollers)
             var editor = ((<any>this.ui()).getModel())
+            vv.documentPollers=buf;
+            //cfg.emitter.handlersByEventName['did-change']=cfgCh;
             var ch = editor.emitter.handlersByEventName['did-change'];
             var outer = this;
             this.innerSetGrammar();
@@ -3119,7 +3176,10 @@ export class TextField extends DialogField<AtomEditorElement> {
         if (placeholder) this.getActualField().setPlaceholder(placeholder);
         this.getActualField().setSoftWrapped(false);
     }
-    
+    dispose(){
+        super.dispose();
+        this._actualField.dispose();
+    }
     customize(element) {
         super.customize(element);
         this.addClass('text-field');
