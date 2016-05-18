@@ -2629,6 +2629,11 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
             editor.emitter.handlersByEventName['did-change'] = [];
             editor.emitter.dispose();
             (<any>this._ui).model=null;
+            try {
+                (<any>this._ui).component.disposables.dispose();
+            } catch (e){
+                console.log(e);
+            }
         }
         super.dispose();
         this._ui=null;
