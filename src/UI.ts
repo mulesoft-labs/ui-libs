@@ -2121,8 +2121,8 @@ export class ListView<M, T> extends StructuredViewer<M, T>{
     
     protected _panelCustomized: boolean = false;
     
-    customizePanel() {
-        if (this._panelCustomized == true) return;
+    customizePanel(forced: boolean = false) {
+        if (!forced && this._panelCustomized === true) return;
         this._panelCustomized = true;
         var cpane = this._contentui.ui();
         cpane.onkeydown = e=> this.handleKey(e);
@@ -2351,8 +2351,8 @@ export class TreeViewer<A, T> extends ListView<A, T> {
         return (x, y) => pcmp(x, y) && this._tcp.hasChildren(x) == this._tcp.hasChildren(y);
     }
     
-    customizePanel() {
-        if (this._panelCustomized == true) return;
+    customizePanel(forced: boolean = false) {
+        if (!forced && this._panelCustomized === true) return;
         
         this._panelCustomized = true;
         var cpane = this._contentui.ui();
