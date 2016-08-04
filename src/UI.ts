@@ -2662,7 +2662,7 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
             var outer = this;
             this.innerSetGrammar();
             editor.emitter.handlersByEventName['did-change'] = [function (x) {
-                ch[0](x);
+                ch && ch[0] && ch[0](x);
                 outer.setAssociatedValue(outer.getValue())
                 outer._onchange(outer, outer.getValue());
             }];
