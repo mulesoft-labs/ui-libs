@@ -1,7 +1,7 @@
 declare function require(name:string):any
 declare var process:any;
 var remote = require("remote");
-var dialog = remote.require("dialog");
+var dialog = remote.require("electron").dialog;
 
 /**
  * In example : { name: 'Images', extensions: ['jpg', 'png', 'gif'] }
