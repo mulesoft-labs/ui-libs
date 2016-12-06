@@ -346,7 +346,7 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
     tooltipHandle: IDisposable;
 
     clearUI(){
-        this._ui=null;
+        changeUi(this, null);
     }
 
     private applyTooltip(tooltip: BasicComponent<any>) {
@@ -409,7 +409,7 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
             this._ui.onfocus =null;
             this._ui.onclick=null;
             (<Node>this._ui).removeEventListener("DOMNodeRemovedFromDocument", this.destroyListener);
-            this._ui=null;
+            changeUi(this, null);
 
         }
         this._parent=null;
@@ -479,7 +479,9 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
      
     protected _ui: T; 
     ui() {
-        if (this._ui == null) this._ui = this.renderUI();
+        if (this._ui == null) {
+            changeUi(this, this.renderUI());
+        }
         return this._ui;
     }
     
@@ -489,7 +491,7 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
             this._ui.parentNode.replaceChild(ui, this._ui);
                   
         
-        this._ui = ui;
+        changeUi(this, ui);
     }
 
     constructor(private _tagName, icon: Icon = null) {
@@ -517,7 +519,9 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
     renderUI(): T {
 
         var start = this.selfRender();
-        this._ui = start;
+
+        changeUi(this, start);
+        
         if (!this.firstInit) {
             this.selfInit();
             this.firstInit = true;
@@ -660,7 +664,19 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
      * @returns not null element;
      */
     protected selfRender(): T {
-        return <any>document.createElement(this._tagName);
+        var element = <any>document.createElement(this._tagName);
+
+        if(!element.model && element.getModel) {
+            if ((<any>this).mini) {
+                element.setAttribute("mini", '');
+            }
+            
+            var editor: any = element.getModel();
+
+            editor.aleak.message("created");
+        }
+
+        return element;
     }
 
     protected selfRenderFooter(): HTMLElement {
@@ -2587,13 +2603,12 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     }
 
     private innerSetGrammar() {
-        if (this.grammar) {
-            var editor = ((<any>this.ui()).getModel())
-            var ag=getGrammar(this.grammar);
-            var evH:any=ag;
-            var oldListeners:any[]=[].concat(evH.emitter.handlersByEventName["did-update"]);
-            editor.setGrammar(ag)
-            evH.emitter.handlersByEventName["did-update"]=oldListeners;
+        if(this.grammar) {
+            var editor = getModel(this.ui());
+            
+            var grammar = getGrammar(this.grammar);
+            
+            editor.setGrammar(grammar);
         }
     }
     protected mini:boolean=true;
@@ -2606,74 +2621,67 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     }
 
     selectAll() {
-        (<any>this.ui()).getModel().selectAll(); 
+        getModel(this.ui()).selectAll(); 
     }
     
     selectNone() {
-        (<any>this.ui()).getModel().setSelectedScreenRange([[0, 0], [0, 0]]);
+        getModel(this.ui()).setSelectedScreenRange([[0, 0], [0, 0]]);
     }
 
     setPlaceholder(text: string) {
-        (<any>this.ui()).getModel().setPlaceholderText(text);
+        getModel(this.ui()).setPlaceholderText(text);
     }
     placeholder() {
-        return (<any>this.ui()).getModel().getPlaceholderText();
+        return getModel(this.ui()).getPlaceholderText();
     }
     
     setSoftWrapped(wrap: boolean) : boolean {
-        return (<any>this.ui()).getModel().setSoftWrapped(wrap);
+        return getModel(this.ui()).setSoftWrapped(wrap);
     }
     dispose(){
         if (this._ui) {
-            var editor = ((<any>this._ui).getModel())
-            editor.emitter.handlersByEventName['did-change'] = [];
-            editor.emitter.dispose();
-            (<any>this._ui).model=null;
-            try {
-                (<any>this._ui).component.disposables.dispose();
-            } catch (e){
-                console.log(e);
-            }
+            var ui: any = this._ui;
+            
+            ui.model.destroy();
+
+            ui.model = null;
         }
+        
         super.dispose();
-        this._ui=null;
+        
+        changeUi(this, null);
     }
     
 
     protected customize(element:HTMLInputElement) {
-        {
-            element.textContent = this.getText();
-            if (this.mini) {
-                element.setAttribute("mini", '');
-            }
-            var vv:any=(<any>atom).views;
-            var cfg=(<any>atom).config
-            var l=(<any>atom).styles.emitter.handlersByEventName;
-            var sadd:any[]=[].concat(l['did-add-style-element']);
-            var sremove:any[]=[].concat(l['did-remove-style-element']);
-            var schange:any[]=[].concat(l['did-update-style-element']);
-            //var cfgCh:any[]=[].concat(cfg.emitter.handlersByEventName['did-change']);
+        element.textContent = this.getText();
+        
+        var editor = getModel(this.ui());
+        
+        var changeListeners = editor.emitter.handlersByEventName['did-change'];
+        
+        this.innerSetGrammar();
+        
+        var changeListenerAdded = changeListeners && changeListeners.indexOf(this.didChangeActionWithContext) > -1;
 
-            var buf:any[]=[].concat(vv.documentPollers)
-            var editor = ((<any>this.ui()).getModel())
-            vv.documentPollers=buf;
-            //cfg.emitter.handlersByEventName['did-change']=cfgCh;
-            var ch = editor.emitter.handlersByEventName['did-change'];
-            var outer = this;
-            this.innerSetGrammar();
-            editor.emitter.handlersByEventName['did-change'] = [function (x) {
-                ch && ch[0] && ch[0](x);
-                outer.setAssociatedValue(outer.getValue())
-                outer._onchange(outer, outer.getValue());
-            }];
+        if(!changeListenerAdded) {
+            editor.onDidChange(this.didChangeActionWithContext);
         }
-
+        
         super.customize(element);
+    }
+    
+    didChangeActionWithContext = () => this.didChangeAction();
+    
+    didChangeAction() {
+        this.setAssociatedValue(this.getValue());
+
+        this._onchange(this, this.getValue());
     }
 
     setText(newText: string, handle: boolean = true) {
         if (this.ui()) {
-            var editor = ((<any>this.ui()).getModel())
+            var editor = getModel(((<any>this.ui())))
             editor.setText(newText);
         }
         super.setText(newText, handle);
@@ -2687,7 +2695,7 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     }
 
     getValue(){
-        return (<any>this.ui()).getModel().getText();
+        return getModel((<any>this.ui())).getText();
     }
 }
 
@@ -3796,7 +3804,7 @@ export function masterDetails<R, T>(selectionProvider: SelectionProvider<T>, vie
         }
     });
 }
-declare var atom:{workspace:any, grammars: any, tooltips:any}
+declare var atom:{workspace:any, grammars: any, tooltips:any, views: any, config: any, styles: any}
 /**
  * function to show dialog prompt
  * @param name
@@ -3840,3 +3848,10 @@ export function prompt (name:string, callBack : (newValue:string)=>void, initial
 export import fdUtils=require("./fileDialogUtils")
 
 
+function changeUi(uiHolder, newUi) {
+    uiHolder._ui = newUi;
+}
+
+function getModel(ui) {
+    return ui.getModel();
+}
