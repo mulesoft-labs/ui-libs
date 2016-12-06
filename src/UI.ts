@@ -671,9 +671,7 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
                 element.setAttribute("mini", '');
             }
             
-            var editor: any = element.getModel();
-
-            editor.aleak.message("created");
+            element.getModel();
         }
 
         return element;
