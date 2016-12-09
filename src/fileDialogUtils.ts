@@ -1,7 +1,21 @@
 declare function require(name:string):any
 declare var process:any;
-var remote = require("remote");
-var dialog = remote.require("electron").dialog;
+
+var dialog;
+
+function getDialog() {
+    if(!dialog) {
+        try {
+            dialog = require("remote").require("electron").dialog;
+        } catch(e) {
+            console.log(e.message);
+        }
+    }
+    
+    return dialog;
+}
+
+dialog = getDialog();
 
 /**
  * In example : { name: 'Images', extensions: ['jpg', 'png', 'gif'] }
@@ -20,13 +34,13 @@ interface FileDialogOptions {
 
 export function openFileDialogModal(title : string, defaultPath? : string, filters? : ExtensionFilter[]) : string {
     var options = constructOptions(title, defaultPath, filters, ['openFile']);
-    return dialog.showOpenDialog(options);
+    return getDialog().showOpenDialog(options);
 }
 
 export function openFileDialog(title : string, callBack : (path:string)=>void, defaultPath? : string,
                         filters? : ExtensionFilter[]) : void {
     var options = constructOptions(title, defaultPath, filters, ['openFile']);
-    dialog.showOpenDialog(options, resultPath=> {
+    getDialog().showOpenDialog(options, resultPath=> {
             if(resultPath) callBack(resultPath[0])
         }
     );
@@ -38,7 +52,7 @@ export function openFolderDialogModal(title : string, createDirectory? : boolean
     if (createDirectory) properties.push('createDirectory');
 
     var options = constructOptions(title, defaultPath, filters, properties);
-    return dialog.showOpenDialog(options);
+    return getDialog().showOpenDialog(options);
 }
 
 export function openFolderDialog(title : string, callBack : (path:string)=>void,
@@ -49,7 +63,7 @@ export function openFolderDialog(title : string, callBack : (path:string)=>void,
 
     var options = constructOptions(title, defaultPath, filters, properties);
 
-    dialog.showOpenDialog(options, resultPath=> {
+    getDialog().showOpenDialog(options, resultPath=> {
             if(resultPath) callBack(resultPath[0])
         }
     );
@@ -57,7 +71,7 @@ export function openFolderDialog(title : string, callBack : (path:string)=>void,
 
 export function saveFileDialogModal(title: string, defaultPath?: string, filters?: ExtensionFilter[]) : string {
     var options = constructOptions(title, defaultPath, filters, ['saveFile']);
-    return dialog.showSaveDialog(options);
+    return getDialog().showSaveDialog(options);
 }
 
 function constructOptions(title, defaultPath, filters, properties) {
