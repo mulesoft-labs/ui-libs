@@ -664,9 +664,11 @@ export class BasicComponent<T extends HTMLElement> implements UIComponent, IDisp
      * @returns not null element;
      */
     protected selfRender(): T {
-        var element = <any>document.createElement(this._tagName);
+        var isTextEditor = this._tagName === 'atom-text-editor';
+        
+        var element = isTextEditor ? (<any>atom).textEditors.build({mini: (<any>this).mini}).element : <any>document.createElement(this._tagName);
 
-        if(!element.model && element.getModel) {
+        if(isTextEditor) {
             if ((<any>this).mini) {
                 element.setAttribute("mini", '');
             }
@@ -1048,7 +1050,14 @@ export class TextElement<T extends HTMLElement> extends BasicComponent<T> {
     }
 
     protected customize(element: T) {
-        element.textContent = this._text;
+        var model: any = (<any>element).model;
+        
+        if(model) {
+            model.setText(this._text);
+        } else {
+            element.textContent = this._text;
+        }
+        
         super.customize(element);
     }
 }
@@ -2652,9 +2661,9 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     
 
     protected customize(element:HTMLInputElement) {
-        element.textContent = this.getText();
-        
         var editor = getModel(this.ui());
+
+        editor.setText(this.getText());
         
         var changeListeners = editor.emitter.handlersByEventName['did-change'];
         
