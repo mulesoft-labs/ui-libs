@@ -2648,14 +2648,16 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     dispose(){
         if (this._ui) {
             var ui: any = this._ui;
-            
+
             ui.model.destroy();
 
             ui.model = null;
+
+            ui.initializeContent = () => null;
         }
-        
+
         super.dispose();
-        
+
         changeUi(this, null);
     }
     
