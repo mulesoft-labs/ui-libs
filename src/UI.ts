@@ -820,7 +820,10 @@ export class CheckBox extends BasicComponent<HTMLDivElement> implements IField<H
         element.classList.add("checkbox");
         element.classList.add("settings-view");
         element.classList.add("pane-item");
+        element.classList.add("api-workbench-checkbox-container")
         var cl: HTMLInputElement = document.createElement("input")
+
+        cl.classList.add("api-workbench-checkbox");
 
         cl.type = "checkbox";
         this.actualInput = cl;
