@@ -49,7 +49,27 @@ export class TreeModel<T, V> {
 		if (parent == null) return this.root;
 		return this.flat.get(parent);
 	}
+	
+	findElement(callback: (element: T) => boolean): T {
+		if(!this.flat) {
+			return null;
+		}
+		
+		var iterator: any = (<any>this.flat).keys();
 
+		var canBeElement = iterator.next().value;
+
+		while(canBeElement) {
+			if(callback(canBeElement)) {
+				return canBeElement;
+			}
+
+			canBeElement = iterator.next().value;
+		}
+
+		return null;
+	}
+	
 	clear() {
 		this.root.children = [];
 		this.flat = new Map<T, Node<T, V>>();
