@@ -1053,7 +1053,9 @@ export class TextElement<T extends HTMLElement> extends BasicComponent<T> {
     }
 
     protected customize(element: T) {
-        var model: any = (<any>element).model;
+        var elt = <any>element;
+        
+        var model = getModel(element, false);
         
         if(model) {
             model.setText(this._text);
@@ -2650,13 +2652,11 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     }
     dispose(){
         if (this._ui) {
-            var ui: any = this._ui;
+            var model = getModel(this._ui, false);
 
-            ui.model.destroy();
-
-            ui.model = null;
-
-            ui.initializeContent = () => null;
+            if(model) {
+                model.destroy();
+            }
         }
 
         super.dispose();
@@ -3864,6 +3864,8 @@ function changeUi(uiHolder, newUi) {
     uiHolder._ui = newUi;
 }
 
-function getModel(ui) {
-    return ui.getModel();
+function getModel(ui, lazy = true) {
+    var model = lazy ? ui.getModel() : (ui.component && ui.component.props && ui.component.props.model || ui.model);
+    
+    return model;
 }
