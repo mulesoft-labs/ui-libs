@@ -34,6 +34,11 @@ export class CompositeDisposable implements IDisposable {
     }
 }
 
+import commonDialogs = require("./commonDialogs");
+
+export function simpleModalDialog(panel: Panel, onDone: () => boolean, onCancel: () => boolean) {
+    commonDialogs.simpleModalDialog(panel, onDone, onCancel);
+}
 
 /*
  * Describest an Component interface for UI
