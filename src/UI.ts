@@ -1140,7 +1140,7 @@ export class Panel extends BasicComponent<HTMLDivElement> {
 export class WrapPanel extends Panel{
 
     setLabelWidth(n:number){
-        if (this.children().length>0) {
+        if (this.children().length>0 && isField(this.children()[0])) {            
             (<any>this.children()[0]).setLabelWidth(n);
         }
     }
