@@ -1063,9 +1063,9 @@ export class TextElement<T extends HTMLElement> extends BasicComponent<T> {
         var model = getModel(element, false);
         
         if(model) {
-            model.setText(this._text);
+            model.setText(this._text || "");
         } else {
-            element.textContent = this._text;
+            element.textContent = this._text || "";
         }
         
         super.customize(element);
@@ -2673,7 +2673,7 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     protected customize(element:HTMLInputElement) {
         var editor = getModel(this.ui());
 
-        editor.setText(this.getText());
+        editor.setText(this.getText() || "");
         
         var changeListeners = editor.emitter.handlersByEventName['did-change'];
         
@@ -2699,7 +2699,8 @@ export class AtomEditorElement extends TextElement<HTMLInputElement>{
     setText(newText: string, handle: boolean = true) {
         if (this.ui()) {
             var editor = getModel(((<any>this.ui())))
-            editor.setText(newText);
+
+            editor.setText(newText || "");
         }
         super.setText(newText, handle);
     }
